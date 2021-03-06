@@ -7,6 +7,8 @@ import argparse
 import cv2
 import yaml
 
+import numpy as np
+
 from FaceBoxes import FaceBoxes
 from TDDFA import TDDFA
 from utils.render import render
@@ -59,7 +61,34 @@ def main(args):
     wfp = f'examples/results/{args.img_fp.split("/")[-1].replace(old_suffix, "")}_{args.opt}' + new_suffix
 
     ver_lst = tddfa.recon_vers(param_lst, roi_box_lst, dense_flag=dense_flag)
-
+    
+    print(ver_lst[0].shape)
+    
+    print(tddfa.bfm.u.shape)
+    
+    lm68 = np.reshape(np.reshape(ver_lst[0].T, (-1,1))[tddfa.bfm.keypoints], (-1,3))
+    print(lm68.shape)
+    
+    for i in range(lm68.shape[0]):
+        lm68[i,1] = img.shape[0] - lm68[i,1]
+    
+    for i in range(ver_lst[0].shape[1]):
+        ver_lst[0][1,i] = img.shape[0] - ver_lst[0][1,i]
+        
+    useful_tri = np.copy(tddfa.tri)
+        
+    for i in range(useful_tri.shape[0]):
+        tmp = useful_tri[i,2]
+        useful_tri[i,2] = useful_tri[i,0]
+        useful_tri[i,0] = tmp
+        
+    useful_tri = useful_tri + 1
+    
+    np.save("asd_lm.npy", lm68)
+    np.save("asd_v.npy", ver_lst[0].T)
+    np.save("asd_f.npy", useful_tri)
+    
+    
     if args.opt == '2d_sparse':
         draw_landmarks(img, ver_lst, show_flag=args.show_flag, dense_flag=dense_flag, wfp=wfp)
     elif args.opt == '2d_dense':
