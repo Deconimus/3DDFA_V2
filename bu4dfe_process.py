@@ -3,7 +3,7 @@
 __author__ = 'cleardusk'
 
 import numpy as np
-import sys, argparse, cv2, yaml, pathlib, _pickle, pickle
+import sys, argparse, cv2, yaml, pathlib, _pickle, pickle, os
 
 from FaceBoxes import FaceBoxes
 from TDDFA import TDDFA
@@ -20,8 +20,8 @@ from utils.tddfa_util import str2bool
 def main(args):
     
     # input and output folder
-    image_path = "J:\\BU-4DFE\\Extracted"
-    save_path  = "D:\\bu4dfe_d3fr_proc"
+    image_path = "G:\\BU-4DFE\\Extracted"
+    save_path  = "G:\\bu4dfe_3ddfa_proc"
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -34,7 +34,7 @@ def main(args):
     tddfa = TDDFA(gpu_mode=gpu_mode, **cfg)
     face_boxes = FaceBoxes()
     
-    img_list = sorted(list(pathlib.Path(image_path).rglob("*.jpg")))
+    img_list = sorted([str(x) for x in pathlib.Path(image_path).rglob("*.jpg")])
     
     print("Reconstructing:\n")
     
@@ -55,9 +55,9 @@ def main(args):
         boxes = face_boxes(img)
         n = len(boxes)
         if n == 0:
-            print(f'No face detected, exit')
-            sys.exit(-1)
-        print(f'Detect {n} faces')
+            print(f'No face detected, skipping \"'+file+'\".')
+            continue
+        #print(f'Detect {n} faces')
 
         param_lst, roi_box_lst = tddfa(img, boxes)
 
